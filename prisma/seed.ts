@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { connect } from 'http2';
 
 const prisma = new PrismaClient();
 
@@ -27,6 +28,11 @@ async function main() {
     ],
   });
 
+  await prisma.pokemonCard.create({
+      data: 
+        { name: 'Squirtle', pokedexId: 7, type: {connect:{id:1}}, lifePoints: 44, imageUrl:'' },
+      
+    });
   console.log('Seed completed!');
 }
 
