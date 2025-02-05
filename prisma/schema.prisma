@@ -23,5 +23,5 @@ model PokemonCard {
   lifePoints Int 
   size Float?
   weight Float?
-  imageUrl String
+  imageUrl String?
 }
