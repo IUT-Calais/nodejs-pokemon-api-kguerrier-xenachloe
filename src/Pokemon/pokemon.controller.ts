@@ -3,15 +3,17 @@ import { PrismaClient } from '@prisma/client';
 
 export const prisma = new PrismaClient();
 
+// Liste des Pokémons
 export const getPokemon = async (_req: Request, res: Response) => {
     try {
         const pokemon = await prisma.pokemonCard.findMany();
-        res.status(200).json(pokemon);
+        res.status(200).send(pokemon);
     } catch (error) {
-        res.status(500).json({ error: 'Erreur lors de la récupération des Pokémon' });
+        res.status(500).send({ error: 'Erreur lors de la récupération des Pokémon' });
     }
 };
 
+//Carte d'un Pokémon
 export const getIdPokemon = async (_req: Request, res: Response) => {
     try {
         const { id } = _req.params;
@@ -20,58 +22,62 @@ export const getIdPokemon = async (_req: Request, res: Response) => {
         });
 
         if (pokemon) {
-            res.status(200).json(pokemon);
+            res.status(200).send(pokemon);
         } else {
-            res.status(404).json({ error: `Pokémon avec l'ID ${id} non trouvé` });
+            res.status(404).send({ error: `Pokémon avec l'ID ${id} non trouvé` });
         }
     } catch (error) {
-        res.status(500).json({ error: 'Erreur lors de la récupération du Pokémon' });
+        res.status(500).send({ error: 'Erreur lors de la récupération du Pokémon' });
     }
 };
 
-export const createPokemon = async (_req: Request, res: Response) => {
-    try {
-        const { name, pokedexId, type, lifePoints, size, weight, imageUrl } = _req.body;
+//Créer un Pokémon
+export const createPokemon = async (req: Request, res: Response) => {
+  try {
+    const { name, pokedexId, type, lifePoints, size, weight, imageUrl } = req.body;
+    const newPokemon = await prisma.pokemonCard.create({
+      data: {
+        name,
+        pokedexId,
+        type: { connect: { id: parseInt(type) } },
+        lifePoints,
+        size: size ?? null, // Gérer les valeurs nulles
+        weight: weight ?? null,
+        imageUrl: imageUrl ?? null,
+      },
+    });
 
-        const newPokemon = await prisma.pokemonCard.create({
-            data: { 
-                name, 
-                pokedexId, 
-                type: { connect: { id: parseInt(type) } }, 
-                lifePoints, 
-                size, 
-                weight, 
-                imageUrl 
-            },
-        });
-
-        res.status(200).json(newPokemon);
-    } catch (error) {
-        res.status(200).json({ error: 'Erreur lors de la création du Pokémon' });
-    }
+    res.status(201).send(newPokemon); // 201 pour "Created"
+  } catch (error) {
+    console.error("Erreur lors de la création du Pokémon :", error);
+    res.status(500).send({ error: "Erreur lors de la création du Pokémon." });
+  }
 };
 
-export const updatePokemon = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const pokemonId = parseInt(id);
 
-        const { name, type, lifePoints, size, weight, imageUrl } = req.body;
+//Modifier un Pokémon
+// export const updatePokemon = async (req: Request, res: Response) => {
+//     try {
+//         const { id } = req.params;
+//         const { name, pokedexId, type, lifePoints, size, weight, imageUrl } = req.body;
+//         const updatedPokemon = await prisma.pokemonCard.update({
+//             where: { id: parseInt(id) },
+//             data: name: name,
+//                 pokedexId: pokedexId,
+//                 type: type,
+//                 lifePoints: lifePoints,
+//                 size: size,
+//                 weight: weight,
+//                 imageUrl: imageUrl,
+//         });
+//         res.status(200).send(updatedPokemon);
 
-        const data: any = { name, lifePoints, size, weight, imageUrl };
+//     } catch (error) {
+//         res.status(200).send({ error: "Erreur lors de la modification du Pokémon" });
+//     }
+// };
 
-        const updatedPokemon = await prisma.pokemonCard.update({
-            where: { id: pokemonId },
-            data,
-        });
-
-        res.json(updatedPokemon);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erreur lors de la mise à jour du Pokémon' });
-    }
-};
-
+//Supprimer un Pokémon
 export const deletePokemon = async (_req: Request, res: Response) => {
     try {
         const { id } = _req.params;
@@ -80,8 +86,8 @@ export const deletePokemon = async (_req: Request, res: Response) => {
             where: { id: parseInt(id) },
         });
 
-        res.status(200).json(deletedPokemon);
+        res.status(200).send(deletedPokemon);
     } catch (error) {
-        res.status(200).json({ error: 'Erreur lors de la suppression du Pokémon' });
+        res.status(200).send({ error: 'Erreur lors de la suppression du Pokémon' });
     }
 };
